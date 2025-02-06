@@ -29,6 +29,5 @@ app.get("/menu", (req, res) => {
       order: { item, quantity },
     });
   });
-  
 
 app.listen(3000, () => console.log("Server running on port 3000"));

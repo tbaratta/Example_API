@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+     <meta charset="UTF-8">
+     <title>EagleHacks API Frontend</title>
+     <style>
+          body {
+               font-family: Arial, sans-serif;
+               margin: 20px;
+          }
+
+          h1,
+          h2 {
+               color: #333;
+          }
+
+          .menu-item {
+               margin-bottom: 5px;
+          }
+
+          .order-form {
+               margin-top: 20px;
+          }
+
+          #order-response {
+               margin-top: 10px;
+               font-weight: bold;
+          }
+     </style>
+</head>
+
+<body>
+     <h1>EagleHacks API Frontend</h1>
+
+     <!-- Section to display welcome message -->
+     <p id="welcomeMessage">Loading welcome message...</p>
+
+     <!-- Menu Section -->
+     <h2>Menu</h2>
+     <div id="menu">Loading menu items...</div>
+
+     <!-- Order Form -->
+     <h2>Place Your Order</h2>
+     <form id="orderForm" class="order-form">
+          <label for="orderItem">Item:</label>
+          <select id="orderItem" name="orderItem"></select>
+          <br><br>
+          <label for="orderQuantity">Quantity:</label>
+          <input type="number" id="orderQuantity" name="orderQuantity" min="1" value="1" required>
+          <br><br>
+          <button type="submit">Submit Order</button>
+     </form>
+
+     <!-- Section to display order response -->
+     <div id="order-response"></div>
+
+     <script>
+          // Base URL for the API
+          const baseUrl = "http://localhost:3000";
+
+          // Function to fetch and display the welcome message
+          fetch(`${baseUrl}/`)
+               .then(response => response.json())
+               .then(data => {
+                    document.getElementById("welcomeMessage").innerText = data.message;
+               })
+               .catch(error => {
+                    console.error("Error fetching welcome message:", error);
+                    document.getElementById("welcomeMessage").innerText = "Failed to load welcome message.";
+               });
+
+          // Function to fetch and display menu items
+          fetch(`${baseUrl}/menu`)
+               .then(response => response.json())
+               .then(menuItems => {
+                    const menuDiv = document.getElementById("menu");
+                    const orderSelect = document.getElementById("orderItem");
+                    menuDiv.innerHTML = ""; // Clear any loading text
+
+                    menuItems.forEach(item => {
+                         // Create a div to display the menu item
+                         const menuItemDiv = document.createElement("div");
+                         menuItemDiv.className = "menu-item";
+                         menuItemDiv.innerText = `${item.item} - $${item.price}`;
+                         menuDiv.appendChild(menuItemDiv);
+
+                         // Also add the item as an option in the order dropdown
+                         const option = document.createElement("option");
+                         option.value = item.item;
+                         option.text = item.item;
+                         orderSelect.appendChild(option);
+                    });
+               })
+               .catch(error => {
+                    console.error("Error fetching menu:", error);
+                    document.getElementById("menu").innerText = "Failed to load menu items.";
+               });
+
+          // Add event listener for order form submission
+          document.getElementById("orderForm").addEventListener("submit", function (event) {
+               event.preventDefault(); // Prevent form from submitting the traditional way
+
+               const selectedItem = document.getElementById("orderItem").value;
+               const quantity = Number(document.getElementById("orderQuantity").value);
+
+               // Prepare the order data
+               const orderData = {
+                    item: selectedItem,
+                    quantity: quantity
+               };
+
+               // Send a POST request to /order
+               fetch(`${baseUrl}/order`, {
+                    method: "POST",
+                    headers: {
+                         "Content-Type": "application/json"
+                    },
+                    body: JSON.stringify(orderData)
+               })
+                    .then(response => {
+                         if (!response.ok) {
+                              throw new Error("Order submission failed");
+                         }
+                         return response.json();
+                    })
+                    .then(data => {
+                         document.getElementById("order-response").innerText = data.message;
+                    })
+                    .catch(error => {
+                         console.error("Error placing order:", error);
+                         document.getElementById("order-response").innerText = "Failed to place order.";
+                    });
+          });
+     </script>
+</body>
+
+</html>
